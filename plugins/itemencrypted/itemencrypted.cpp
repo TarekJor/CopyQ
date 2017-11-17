@@ -737,9 +737,9 @@ ItemScriptableFactoryPtr ItemEncryptedLoader::scriptableFactory()
     return std::make_shared<ItemEncryptedScriptableFactory>();
 }
 
-QList<Command> ItemEncryptedLoader::commands() const
+QVector<Command> ItemEncryptedLoader::commands() const
 {
-    QList<Command> commands;
+    QVector<Command> commands;
 
     Command c;
     c.name = tr("Encrypt (needs GnuPG)");

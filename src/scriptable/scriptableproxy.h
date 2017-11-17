@@ -27,6 +27,7 @@
 #include <QList>
 #include <QMetaObject>
 #include <QObject>
+#include <QVector>
 
 #include <memory>
 
@@ -175,9 +176,9 @@ public:
 
     void filter(const QString &text);
 
-    QList<Command> commands();
-    void setCommands(const QList<Command> &commands);
-    void addCommands(const QList<Command> &commands);
+    QVector<Command> commands();
+    void setCommands(const QVector<Command> &commands);
+    void addCommands(const QVector<Command> &commands);
 
     QByteArray screenshot(const QString &format, const QString &screenName, bool select);
 

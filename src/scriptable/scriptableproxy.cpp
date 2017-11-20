@@ -37,7 +37,6 @@
 #include "item/serialize.h"
 #include "platform/platformnativeinterface.h"
 #include "platform/platformwindow.h"
-#include "scriptable/scriptable.h"
 
 #include <QDialog>
 #include <QHBoxLayout>
@@ -441,6 +440,7 @@ ScriptableProxy::ScriptableProxy(MainWindow *mainWindow)
     , m_invoked( QThread::currentThread() == qApp->thread() )
 {
     qRegisterMetaType< QPointer<QWidget> >("QPointer<QWidget>");
+    qRegisterMetaType<PersistentItemSelection>("PersistentItemSelection");
 }
 
 QVariantMap ScriptableProxy::getActionData(int id)
@@ -1391,6 +1391,55 @@ bool ScriptableProxy::setIconTagColor(const QString &colorName)
 
     m_wnd->setSessionIconTagColor(color);
     return true;
+}
+
+void ScriptableProxy::connectSignal(QObject *receiver)
+{
+    INVOKE2(connectSignal(receiver));
+    QObject::connect(
+                m_wnd, SIGNAL(itemWidgetCreated(PersistentItemSelection)),
+                receiver, SLOT(onItemWidgetCreated(PersistentItemSelection)),
+                Qt::UniqueConnection);
+    m_wnd->reemitItemWidgetCreated();
+}
+
+void ScriptableProxy::removeInvalidSelections(QVector<PersistentItemSelection> *selections)
+{
+    INVOKE2(removeInvalidSelections(selections));
+
+    for (int i = selections->size() - 1; i >= 0; --i) {
+        const auto &selection = selections->at(i);
+        if ( !selection.widget() )
+            selections->removeAt(i);
+    }
+}
+
+void ScriptableProxy::setDisplayData(
+        const QVector<PersistentItemSelection> &selections, const QVector<QVariantMap> &dataList)
+{
+    INVOKE2(setDisplayData(selections, dataList));
+
+    for (int i = 0; i < selections.size(); ++i ) {
+        const auto &selection = selections[i];
+
+        const auto data = dataList.value(i);
+        if ( data == selection.data() )
+            continue;
+
+        const auto widget = selection.widget();
+        if (!widget)
+            continue;
+
+        auto parent = widget->parent();
+        while ( parent && !qobject_cast<ClipboardBrowser*>(parent) )
+            parent = parent->parent();
+
+        auto browser = qobject_cast<ClipboardBrowser*>(parent);
+        if (!browser)
+            return;
+
+        browser->setDisplayData(*widget, data);
+    }
 }
 
 ClipboardBrowser *ScriptableProxy::fetchBrowser(const QString &tabName)

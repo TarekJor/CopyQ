@@ -33,8 +33,10 @@
 #include <QVariantMap>
 #include <QWidget>
 
+class Client;
 class ClientSocket;
 class ItemFactory;
+class MainScriptableWorker;
 class RemoteProcess;
 class ScriptableProxy;
 class QxtGlobalShortcut;
@@ -92,7 +94,7 @@ private slots:
     /**
      * Execute command in different thread.
      */
-    void doCommand(const ClientSocketPtr &client = nullptr //!< For sending responses.
+    void doCommand(const ClientSocketPtr &client //!< For sending responses.
             );
 
     /** New message from monitor process. */
@@ -134,14 +136,19 @@ private:
 
     bool hasRunningCommands() const;
 
+    void restartMainScript();
+
     MainWindow* m_wnd;
     ScriptableProxy *m_scriptableProxy = nullptr;
     RemoteProcess *m_monitor;
     QMap<QxtGlobalShortcut*, Command> m_shortcutActions;
     QThreadPool m_clientThreads;
+    QThread *m_mainScript;
     QTimer m_ignoreKeysTimer;
     ItemFactory *m_itemFactory;
     QList<ItemScriptableFactoryPtr> m_scriptableFactories;
+    QVector<Command> m_scriptCommands;
+    QPointer<MainScriptableWorker> m_mainScriptableWorker;
 };
 
 #endif // CLIPBOARDSERVER_H

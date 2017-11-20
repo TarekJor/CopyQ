@@ -31,10 +31,16 @@ class Client : public QObject
 public:
     explicit Client(QObject *parent = nullptr);
 
+    bool isConnected() const;
+
 protected:
     void startClientSocket(const QString &serverName, int argc, char **argv, int skipArgc, int messageCode);
 
+    void startClientSocket(const QString &serverName, int messageCode);
+
     void sendMessage(const QByteArray &message, int messageCode);
+
+    void close();
 
 private slots:
     /** Message received from server. */
@@ -47,6 +53,8 @@ private slots:
     virtual void onConnectionFailed() = 0;
 
 private:
+    void createSocket(const QString &serverName);
+
     ClientSocket *m_socket;
 };
 

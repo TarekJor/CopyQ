@@ -36,3 +36,4 @@ const char mimeColor[] = COPYQ_MIME_PREFIX "color";
 const char mimeOutputTab[] = COPYQ_MIME_PREFIX "output-tab";
 const char mimeSyncToClipboard[] = COPYQ_MIME_PREFIX "sync-to-clipboard";
 const char mimeSyncToSelection[] = COPYQ_MIME_PREFIX "sync-to-selection";
+const char mimeDisplayData[] = COPYQ_MIME_PREFIX "diplay-data";

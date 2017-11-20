@@ -38,7 +38,7 @@ enum CommandStatus {
     /** Arguments/script from client */
     CommandArguments,
     /** Client data from its stdin */
-    CommandReadInputReply
+    CommandReadInputReply,
 };
 
 #endif // COMMANDSTATUS_H

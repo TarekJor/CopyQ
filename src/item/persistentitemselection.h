@@ -16,22 +16,41 @@
     You should have received a copy of the GNU General Public License
     along with CopyQ.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ITEMLOADERSCRIPT_H
-#define ITEMLOADERSCRIPT_H
 
-#include "itemwidget.h"
+#ifndef PERSISTENTITEMSELECTION_H
+#define PERSISTENTITEMSELECTION_H
 
-#include <QObject>
+#include <QMetaType>
+#include <QVariantMap>
 
 #include <memory>
 
-class ScriptableProxy;
+class QObject;
+class QPersistentModelIndex;
+class QModelIndex;
+class QString;
 
-using ItemLoaderPtr = std::shared_ptr<ItemLoaderInterface>;
+class PersistentItemSelection final
+{
+public:
+    PersistentItemSelection() = default;
 
-/**
- * Returns new loader or nullptr if script couldn't be loaded properly.
- */
-ItemLoaderPtr createItemLoaderScript(const Command &command, ScriptableProxy *proxy);
+    explicit PersistentItemSelection(const QString &tabName);
 
-#endif // ITEMLOADERSCRIPT_H
+    PersistentItemSelection(
+            const QString &tabName, const QVariantMap &data, const QObject *widget);
+
+    QVariantMap data() const;
+
+    QString tabName() const;
+
+    const QObject *widget() const;
+
+private:
+    struct PersistentItemSelectionPrivate;
+    std::shared_ptr<PersistentItemSelectionPrivate> m_d;
+};
+
+Q_DECLARE_METATYPE(PersistentItemSelection)
+
+#endif // PERSISTENTITEMSELECTION_H

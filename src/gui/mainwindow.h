@@ -24,6 +24,7 @@
 #include "gui/clipboardbrowsershared.h"
 #include "gui/menuitems.h"
 #include "gui/notificationbutton.h"
+#include "item/persistentitemselection.h"
 
 #include "platform/platformnativeinterface.h"
 
@@ -324,6 +325,8 @@ public:
 
     QColor sessionIconTagColor() const;
 
+    void reemitItemWidgetCreated();
+
 public slots:
     /** Close main window and exit the application. */
     void exit();
@@ -509,6 +512,8 @@ signals:
     void stopTrayMenuCommandTester();
 
     void configurationChanged();
+
+    void itemWidgetCreated(PersistentItemSelection selection);
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;

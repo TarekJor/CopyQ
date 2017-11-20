@@ -32,16 +32,25 @@ Client::Client(QObject *parent)
 {
 }
 
+bool Client::isConnected() const
+{
+    return m_socket && !m_socket->isClosed();
+}
+
 void Client::sendMessage(const QByteArray &message, int messageCode)
 {
     m_socket->sendMessage(message, messageCode);
 }
 
-void Client::startClientSocket(const QString &serverName, int argc, char **argv, int skipArgc, int messageCode)
+void Client::close()
 {
-    Arguments arguments(
-                createPlatformNativeInterface()->getCommandLineArguments(argc, argv)
-                .mid(skipArgc) );
+    if (m_socket)
+        m_socket->close();
+}
+
+void Client::createSocket(const QString &serverName)
+{
+    Q_ASSERT(m_socket == nullptr);
 
     m_socket = new ClientSocket(serverName, this);
 
@@ -53,9 +62,24 @@ void Client::startClientSocket(const QString &serverName, int argc, char **argv,
              this, SLOT(onConnectionFailed()) );
 
     m_socket->start();
+}
+
+void Client::startClientSocket(const QString &serverName, int argc, char **argv, int skipArgc, int messageCode)
+{
+    Arguments arguments(
+                createPlatformNativeInterface()->getCommandLineArguments(argc, argv)
+                .mid(skipArgc) );
+
+    createSocket(serverName);
 
     QByteArray msg;
     QDataStream out(&msg, QIODevice::WriteOnly);
     out << arguments;
     sendMessage(msg, messageCode);
+}
+
+void Client::startClientSocket(const QString &serverName, int messageCode)
+{
+    createSocket(serverName);
+    sendMessage(QByteArray(), messageCode);
 }

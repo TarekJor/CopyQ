@@ -199,6 +199,12 @@ public:
     QString iconTagColor();
     bool setIconTagColor(const QString &name);
 
+    void connectSignal(QObject *receiver);
+
+    void removeInvalidSelections(QVector<PersistentItemSelection> *selections);
+    void setDisplayData(
+            const QVector<PersistentItemSelection> &selections, const QVector<QVariantMap> &dataList);
+
 private:
     ClipboardBrowser *fetchBrowser(const QString &tabName);
     ClipboardBrowser *fetchBrowser();

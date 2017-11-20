@@ -27,6 +27,7 @@
 #include "item/clipboardmodel.h"
 #include "item/itemdelegate.h"
 #include "item/itemwidget.h"
+#include "item/persistentitemselection.h"
 
 #include <QListView>
 #include <QPointer>
@@ -249,6 +250,10 @@ class ClipboardBrowser : public QListView
 
         QVariantMap itemData(const QModelIndex &index) const;
 
+        void setDisplayData(const QObject &widget, const QVariantMap &data);
+
+        void reemitItemWidgetCreated();
+
     public slots:
         /**
          * Save items to configuration.
@@ -304,6 +309,8 @@ class ClipboardBrowser : public QListView
         void searchHideRequest();
 
         void closeExternalEditors();
+
+        void itemWidgetCreated(PersistentItemSelection selection);
 
     protected:
         void keyPressEvent(QKeyEvent *event) override;

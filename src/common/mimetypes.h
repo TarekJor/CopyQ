@@ -38,5 +38,6 @@ extern const char mimeColor[];
 extern const char mimeOutputTab[];
 extern const char mimeSyncToClipboard[];
 extern const char mimeSyncToSelection[];
+extern const char mimeDisplayData[];
 
 #endif // MIMETYPES_H

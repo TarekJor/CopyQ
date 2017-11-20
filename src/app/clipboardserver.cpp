@@ -19,10 +19,12 @@
 
 #include "clipboardserver.h"
 
+#include "app/client.h"
 #include "app/remoteprocess.h"
 #include "common/appconfig.h"
 #include "common/clientsocket.h"
 #include "common/client_server.h"
+#include "common/commandstatus.h"
 #include "common/display.h"
 #include "common/log.h"
 #include "common/mimetypes.h"
@@ -214,6 +216,7 @@ void ClipboardServer::onCommandsSaved()
     removeGlobalShortcuts();
 
     QList<QKeySequence> usedShortcuts;
+
     QVector<Command> scriptCommands;
 
     const auto commands = loadEnabledCommands();
@@ -236,10 +239,11 @@ void ClipboardServer::onCommandsSaved()
 #endif
     }
 
-    if ( !scriptCommands.isEmpty() || m_itemFactory->hasScriptCommands() ) {
-        m_itemFactory->setScriptCommands(scriptCommands, m_scriptableProxy);
+    if (m_scriptCommands != scriptCommands) {
+        m_scriptCommands = scriptCommands;
         loadSettings();
         m_wnd->loadSettings();
+        restartMainScript();
     }
 }
 
@@ -327,6 +331,12 @@ bool ClipboardServer::askToQuit()
 
 void ClipboardServer::terminateThreads()
 {
+    if (m_mainScriptableWorker) {
+        m_mainScriptableWorker->close();
+        while ( m_mainScriptableWorker && m_mainScriptableWorker->isRunning() )
+            QCoreApplication::processEvents(QEventLoop::WaitForMoreEvents, 10);
+    }
+
     const auto activeThreads = m_clientThreads.activeThreadCount();
     if (activeThreads == 0)
         return;
@@ -339,7 +349,20 @@ void ClipboardServer::terminateThreads()
 
 bool ClipboardServer::hasRunningCommands() const
 {
-    return m_clientThreads.activeThreadCount() > 0 || m_wnd->hasRunningAction();
+    return m_wnd->hasRunningAction() || m_clientThreads.activeThreadCount() > 0;
+}
+
+void ClipboardServer::restartMainScript()
+{
+    if (m_mainScriptableWorker) {
+        m_mainScriptableWorker->close();
+        m_mainScriptableWorker = nullptr;
+    }
+
+    m_mainScriptableWorker = new MainScriptableWorker(m_wnd, m_scriptableFactories, m_scriptCommands, this);
+    connect( m_mainScriptableWorker, SIGNAL(finished()),
+             m_mainScriptableWorker, SLOT(deleteLater()) );
+    m_mainScriptableWorker->start();
 }
 
 void ClipboardServer::doCommand(const ClientSocketPtr &client)
@@ -348,7 +371,7 @@ void ClipboardServer::doCommand(const ClientSocketPtr &client)
     // There is no parent so as it's possible to move the worker to another thread.
     // QThreadPool takes ownership and worker will be automatically deleted
     // after run() (see QRunnable::setAutoDelete()).
-    auto worker = new ScriptableWorker(m_wnd, client, m_scriptableFactories);
+    auto worker = new ScriptableWorker(m_wnd, client, m_scriptableFactories, m_scriptCommands);
 
     // Terminate worker at application exit.
     connect( this, SIGNAL(terminateClientThreads()),
